@@ -41,6 +41,7 @@ class HomeArea extends StatelessWidget {
                   width: boxWidth * 4,
                   height: boxWidth * 4,
                   child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,

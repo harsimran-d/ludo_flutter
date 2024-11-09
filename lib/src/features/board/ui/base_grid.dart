@@ -11,8 +11,9 @@ class BaseGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: boxWidth,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 15,
       ),
       itemBuilder: (context, index) {
         return Container(
@@ -62,6 +63,7 @@ Widget? _getChild(int index, double boxWidth) {
       color: const Color(0xFFD93830),
     );
   } else {
+    // TODO: Add loading to show selectors
     return null;
   }
 }

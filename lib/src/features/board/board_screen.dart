@@ -1,65 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'state/board_cubit.dart';
-import 'ui/base_grid.dart';
-import 'ui/home_area.dart';
-import 'ui/win_area.dart';
+import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
+import 'package:ludo_flutter/src/features/dice/rollable_dice.dart';
+import 'ui/game_board.dart';
 
 class BoardScreen extends StatelessWidget {
   const BoardScreen({
     super.key,
   });
-  final unit = 10.0;
-  final homeMulti = 6;
-  final whiteMulti = 4;
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<GameStateCubit>().state;
     return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios,
+              )),
+        ),
         body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: LayoutBuilder(builder: (context, constraints) {
-          const int gridCount = 15;
-          final double boxWidth = constraints.maxWidth / gridCount;
-          context.read<BoardCubit>().setBoxWidth(boxWidth);
-
-          return AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Column(
               children: [
-                BaseGrid(boxWidth: boxWidth),
-                HomeArea(
-                  homeColor: const Color(0xFFD93830),
-                  boxWidth: boxWidth,
-                  top: 0,
-                  left: 0,
+                state.turn == OwnerColor.green
+                    ? const RollableDice(
+                        playerColor: OwnerColor.green,
+                      )
+                    : const SizedBox(
+                        height: 104,
+                      ),
+                const SizedBox(
+                  height: 30,
                 ),
-                HomeArea(
-                  homeColor: const Color(0xFF479D52),
-                  boxWidth: boxWidth,
-                  right: 0,
-                  top: 0,
+                const Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: GameBoard(),
+                  ),
                 ),
-                HomeArea(
-                  homeColor: Colors.blue,
-                  boxWidth: boxWidth,
-                  left: 0,
-                  bottom: 0,
+                const SizedBox(
+                  height: 20,
                 ),
-                HomeArea(
-                  homeColor: const Color.fromARGB(255, 255, 216, 21),
-                  boxWidth: boxWidth,
-                  right: 0,
-                  bottom: 0,
-                ),
-                WinArea(boxWidth: boxWidth),
+                state.turn == OwnerColor.blue
+                    ? const RollableDice(
+                        playerColor: OwnerColor.blue,
+                      )
+                    : const SizedBox(
+                        height: 104,
+                      ),
               ],
             ),
-          );
-        }),
-      ),
-    ));
+          ),
+        ));
   }
 }
