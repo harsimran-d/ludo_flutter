@@ -11,19 +11,38 @@ class GameState {
     required this.turn,
   })  : _dice = dice,
         id = Random().nextInt(100000);
+
   final List<Player> players;
   OwnerColor turn;
   int _dice;
   int id;
+  bool get isSelectingPieces {
+    bool selectablePieces = false;
+    for (Player player in players) {
+      selectablePieces = player.pieces.any((piece) => piece.isSelectable);
+    }
+    return selectablePieces;
+  }
 
   int get dice => _dice;
 
   GameState copyWithRandomId() {
-    return GameState(dice, players: players, turn: turn);
+    return GameState(
+      dice,
+      players: players,
+      turn: turn,
+    );
   }
 
   void rollDice() {
-    _dice = Random().nextInt(6) + 1;
-    print('setting dice to new number $_dice');
+    if (isSelectingPieces) {
+      return;
+    }
+    final bias = Random().nextInt(5);
+    if (bias == 0) {
+      _dice = 6;
+    } else {
+      _dice = Random().nextInt(5) + 1;
+    }
   }
 }

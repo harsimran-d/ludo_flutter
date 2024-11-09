@@ -32,10 +32,7 @@ class RollableDiceState extends State<RollableDice>
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        setState(() {
-          context.read<GameStateCubit>().rollDice(widget.playerColor);
-        });
-
+        context.read<GameStateCubit>().rollDice(widget.playerColor);
         _controller.reset();
       }
     });
@@ -53,6 +50,11 @@ class RollableDiceState extends State<RollableDice>
   }
 
   void rollDice() {
+    final gameState = context.read<GameStateCubit>().state;
+    if (gameState.isSelectingPieces) {
+      return;
+    }
+
     _controller.forward();
   }
 

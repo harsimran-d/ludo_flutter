@@ -25,13 +25,13 @@ class GameStateCubit extends Cubit<GameState> {
         );
 
   void selectPieceToMove(Piece piece) {
-    print('user of ${piece.owner} selected ${piece.id}');
     if (piece.position == -1) {
       piece.position = 0;
       state.players
           .firstWhere((player) => player.myColor == piece.owner)
           .pieces
           .forEach((piece) => piece.isSelectable = false);
+      print('marked the pieces not selectable');
     } else {
       if (piece.position < 56) {
         piece.position += state.dice;
@@ -41,17 +41,28 @@ class GameStateCubit extends Cubit<GameState> {
             .forEach((piece) => piece.isSelectable = false);
       }
     }
+    if (state.dice == 6) {
+      print('this happend before emitting');
+      Future.delayed(const Duration(milliseconds: 500))
+          .then((_) => emit(state.copyWithRandomId()));
+      return;
+    }
     final newTurn =
         piece.owner == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-    final newState =
-        GameState(state.dice, players: state.players, turn: newTurn);
+    final newState = GameState(
+      state.dice,
+      players: state.players,
+      turn: newTurn,
+    );
     Future.delayed(const Duration(milliseconds: 500))
         .then((_) => emit(newState));
+    return;
   }
 
   void rollDice(OwnerColor color) {
     state.rollDice();
     final dice = state.dice;
+
     if (color != state.turn) {
       return;
     }
@@ -63,29 +74,70 @@ class GameStateCubit extends Cubit<GameState> {
     if (dice != 6 && noPieceOnBoard) {
       final newTurn =
           color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-      final newState =
-          GameState(state.dice, players: state.players, turn: newTurn);
+      final newState = GameState(
+        state.dice,
+        players: state.players,
+        turn: newTurn,
+      );
       Future.delayed(const Duration(milliseconds: 500))
           .then((_) => emit(newState));
-    } else if (dice == 6 && noPieceOnBoard) {
+      return;
+    } else if (dice == 6) {
       state.players
           .singleWhere((player) => player.myColor == color)
           .pieces
-          .forEach((piece) => piece.isSelectable = true);
+          .forEach((piece) {
+        if ((piece.position + state.dice) <= 56) {
+          piece.isSelectable = true;
+        }
+      });
 
       Future.delayed(const Duration(milliseconds: 500))
           .then((_) => emit(state.copyWithRandomId()));
+      return;
     } else if (!noPieceOnBoard) {
+      bool aPieceSelected = false;
       state.players
           .firstWhere((player) => player.myColor == color)
           .pieces
           .forEach((piece) {
-        if (piece.position != -1 && piece.position != 56) {
+        if (piece.position != -1 &&
+            piece.position != 56 &&
+            ((piece.position + state.dice) <= 56)) {
           piece.isSelectable = true;
-          Future.delayed(const Duration(milliseconds: 500))
-              .then((_) => emit(state.copyWithRandomId()));
+          aPieceSelected = true;
         }
+        // } else {
+        //   final newTurn =
+        //       color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
+        //   final newState =
+        //       GameState(state.dice, players: state.players, turn: newTurn);
+        //   Future.delayed(const Duration(milliseconds: 500))
+        //       .then((_) => emit(newState));
+        // }
       });
+      if (aPieceSelected) {
+        Future.delayed(const Duration(milliseconds: 500))
+            .then((_) => emit(state.copyWithRandomId()));
+      } else {
+        // swtich turn
+        flipTurn(color);
+      }
+      return;
     }
+    throw Exception('Dice roll never handled $state $dice');
+  }
+
+  void flipTurn(OwnerColor color) {
+    final newTurn =
+        color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
+    final newState = GameState(
+      state.dice,
+      players: state.players,
+      turn: newTurn,
+    );
+    Future.delayed(const Duration(milliseconds: 500))
+        .then((_) => emit(newState));
+    return;
   }
 }
