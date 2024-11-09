@@ -24,25 +24,23 @@ class GameStateCubit extends Cubit<GameState> {
           ),
         );
 
-  void selectPieceToMove(Piece piece) {
+  void selectPieceToMove(Piece piece) async {
     if (piece.position == -1) {
       piece.position = 0;
       state.players
           .firstWhere((player) => player.myColor == piece.owner)
           .pieces
           .forEach((piece) => piece.isSelectable = false);
-      print('marked the pieces not selectable');
     } else {
       if (piece.position < 56) {
-        piece.position += state.dice;
         state.players
             .firstWhere((player) => player.myColor == piece.owner)
             .pieces
             .forEach((piece) => piece.isSelectable = false);
+        await movePieceStepByStep(piece, state.dice);
       }
     }
     if (state.dice == 6) {
-      print('this happend before emitting');
       Future.delayed(const Duration(milliseconds: 500))
           .then((_) => emit(state.copyWithRandomId()));
       return;
@@ -60,72 +58,39 @@ class GameStateCubit extends Cubit<GameState> {
   }
 
   void rollDice(OwnerColor color) {
-    state.rollDice();
-    final dice = state.dice;
-
     if (color != state.turn) {
       return;
     }
-    bool noPieceOnBoard = !state.players
+    state.rollDice();
+    final dice = state.dice;
+    List<Piece> selectablePieces = state.players
         .singleWhere((player) => player.myColor == color)
         .pieces
-        .any((piece) => piece.position != -1);
+        .where((piece) {
+          if ((dice == 6) && (piece.position + dice) <= 56) {
+            return true;
+          } else {
+            if ((piece.position != -1) && (piece.position + dice) <= 56) {
+              return true;
+            }
+            return false;
+          }
+        })
+        .map(
+          (piece) => piece..isSelectable = true,
+        )
+        .toList();
 
-    if (dice != 6 && noPieceOnBoard) {
-      final newTurn =
-          color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-      final newState = GameState(
-        state.dice,
-        players: state.players,
-        turn: newTurn,
-      );
-      Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(newState));
+    if (selectablePieces.isEmpty) {
+      flipTurn(color);
       return;
-    } else if (dice == 6) {
-      state.players
-          .singleWhere((player) => player.myColor == color)
-          .pieces
-          .forEach((piece) {
-        if ((piece.position + state.dice) <= 56) {
-          piece.isSelectable = true;
-        }
-      });
-
+    } else if (selectablePieces.length == 1) {
+      selectPieceToMove(selectablePieces[0]);
+    } else {
       Future.delayed(const Duration(milliseconds: 500))
           .then((_) => emit(state.copyWithRandomId()));
       return;
-    } else if (!noPieceOnBoard) {
-      bool aPieceSelected = false;
-      state.players
-          .firstWhere((player) => player.myColor == color)
-          .pieces
-          .forEach((piece) {
-        if (piece.position != -1 &&
-            piece.position != 56 &&
-            ((piece.position + state.dice) <= 56)) {
-          piece.isSelectable = true;
-          aPieceSelected = true;
-        }
-        // } else {
-        //   final newTurn =
-        //       color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-        //   final newState =
-        //       GameState(state.dice, players: state.players, turn: newTurn);
-        //   Future.delayed(const Duration(milliseconds: 500))
-        //       .then((_) => emit(newState));
-        // }
-      });
-      if (aPieceSelected) {
-        Future.delayed(const Duration(milliseconds: 500))
-            .then((_) => emit(state.copyWithRandomId()));
-      } else {
-        // swtich turn
-        flipTurn(color);
-      }
-      return;
     }
-    throw Exception('Dice roll never handled $state $dice');
   }
 
   void flipTurn(OwnerColor color) {
@@ -139,5 +104,13 @@ class GameStateCubit extends Cubit<GameState> {
     Future.delayed(const Duration(milliseconds: 500))
         .then((_) => emit(newState));
     return;
+  }
+
+  Future<void> movePieceStepByStep(Piece piece, int steps) async {
+    for (int i = 0; i < steps; i++) {
+      await Future.delayed(const Duration(milliseconds: 250));
+      piece.position++;
+      emit(state.copyWithRandomId());
+    }
   }
 }

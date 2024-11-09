@@ -34,11 +34,19 @@ class GameState {
     );
   }
 
+  GameState withNewTurn(OwnerColor newTurn) {
+    return GameState(
+      dice,
+      players: players,
+      turn: newTurn,
+    );
+  }
+
   void rollDice() {
     if (isSelectingPieces) {
       return;
     }
-    final bias = Random().nextInt(5);
+    final bias = Random().nextInt(4);
     if (bias == 0) {
       _dice = 6;
     } else {
