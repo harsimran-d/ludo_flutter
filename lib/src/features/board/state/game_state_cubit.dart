@@ -42,7 +42,7 @@ class GameStateCubit extends Cubit<GameState> {
     }
     if (state.dice == 6) {
       Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWithRandomId()));
+          .then((_) => emit(state.copyWith()));
       return;
     }
     final newTurn =
@@ -88,7 +88,7 @@ class GameStateCubit extends Cubit<GameState> {
       selectPieceToMove(selectablePieces[0]);
     } else {
       Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWithRandomId()));
+          .then((_) => emit(state.copyWith()));
       return;
     }
   }
@@ -110,7 +110,7 @@ class GameStateCubit extends Cubit<GameState> {
     for (int i = 0; i < steps; i++) {
       await Future.delayed(const Duration(milliseconds: 250));
       piece.position++;
-      emit(state.copyWithRandomId());
+      emit(state.copyWith());
     }
   }
 }

@@ -9,13 +9,11 @@ class GameState {
     int dice, {
     required this.players,
     required this.turn,
-  })  : _dice = dice,
-        id = Random().nextInt(100000);
-
+  }) : _dice = dice;
   final List<Player> players;
-  OwnerColor turn;
+  final OwnerColor turn;
   int _dice;
-  int id;
+
   bool get isSelectingPieces {
     bool selectablePieces = false;
     for (Player player in players) {
@@ -26,19 +24,15 @@ class GameState {
 
   int get dice => _dice;
 
-  GameState copyWithRandomId() {
+  GameState copyWith({
+    int? dice,
+    List<Player>? players,
+    OwnerColor? turn,
+  }) {
     return GameState(
-      dice,
-      players: players,
-      turn: turn,
-    );
-  }
-
-  GameState withNewTurn(OwnerColor newTurn) {
-    return GameState(
-      dice,
-      players: players,
-      turn: newTurn,
+      dice ?? this.dice,
+      players: players ?? this.players,
+      turn: turn ?? this.turn,
     );
   }
 
