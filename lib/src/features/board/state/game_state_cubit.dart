@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 import 'package:ludo_flutter/src/features/board/state/piece.dart';
 
 import 'game_state.dart';
@@ -21,12 +22,16 @@ class GameStateCubit extends Cubit<GameState> {
               ),
             ],
             turn: Random().nextBool() ? OwnerColor.blue : OwnerColor.green,
+            piecesGrid: List.generate(15, (_) => List.generate(15, (_) => [])),
           ),
         );
 
   void selectPieceToMove(Piece piece) async {
     if (piece.position == -1) {
       piece.position = 0;
+      piece.location = MoveOffsets.getLocation(piece);
+      state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
+
       state.players
           .firstWhere((player) => player.myColor == piece.owner)
           .pieces
@@ -47,8 +52,8 @@ class GameStateCubit extends Cubit<GameState> {
     }
     final newTurn =
         piece.owner == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-    final newState = GameState(
-      state.dice,
+    final newState = state.copyWith(
+      dice: state.dice,
       players: state.players,
       turn: newTurn,
     );
@@ -96,8 +101,8 @@ class GameStateCubit extends Cubit<GameState> {
   void flipTurn(OwnerColor color) {
     final newTurn =
         color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-    final newState = GameState(
-      state.dice,
+    final newState = state.copyWith(
+      dice: state.dice,
       players: state.players,
       turn: newTurn,
     );
@@ -109,7 +114,12 @@ class GameStateCubit extends Cubit<GameState> {
   Future<void> movePieceStepByStep(Piece piece, int steps) async {
     for (int i = 0; i < steps; i++) {
       await Future.delayed(const Duration(milliseconds: 250));
+      var oldLocation = piece.location;
+      state.piecesGrid[oldLocation.$1][oldLocation.$2].remove(piece);
       piece.position++;
+      piece.location = MoveOffsets.getLocation(piece);
+      state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
+
       emit(state.copyWith());
     }
   }

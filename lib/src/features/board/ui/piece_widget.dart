@@ -9,51 +9,54 @@ class PieceWidget extends StatelessWidget {
   const PieceWidget({
     super.key,
     required this.piece,
-    this.updatedSize,
+    this.updatedSize = 1.0,
   });
   final Piece piece;
-  final double? updatedSize;
+  final double updatedSize;
 
   @override
   Widget build(BuildContext context) {
-    final size = updatedSize ?? context.read<BoxWidthCubit>().state;
+    final size = context.read<BoxWidthCubit>().state * updatedSize;
     return Transform.scale(
       scale: 1.3,
-      child: GestureDetector(
-        onTap: piece.isSelectable
-            ? () {
-                context.read<GameStateCubit>().selectPieceToMove(piece);
-              }
-            : null,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.bottomCenter,
-          children: [
-            if (piece.isSelectable)
-              const Positioned(
-                bottom: -10,
-                child: CircularProgressIndicator(),
+      child: Transform.translate(
+        offset: const Offset(0, -25),
+        child: GestureDetector(
+          onTap: piece.isSelectable
+              ? () {
+                  context.read<GameStateCubit>().selectPieceToMove(piece);
+                }
+              : null,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              if (piece.isSelectable)
+                const Positioned(
+                  bottom: -10,
+                  child: CircularProgressIndicator(),
+                ),
+              SvgPicture.asset(
+                width: size,
+                height: size,
+                'assets/pin_background.svg',
               ),
-            SvgPicture.asset(
-              width: size,
-              height: size,
-              'assets/pin_background.svg',
-            ),
-            SvgPicture.asset(
-              width: size,
-              height: size,
-              colorFilter: ColorFilter.mode(
-                piece.owner.myColor,
-                BlendMode.srcIn,
+              SvgPicture.asset(
+                width: size,
+                height: size,
+                colorFilter: ColorFilter.mode(
+                  piece.owner.myColor,
+                  BlendMode.srcIn,
+                ),
+                'assets/pin_colored.svg',
               ),
-              'assets/pin_colored.svg',
-            ),
-            SvgPicture.asset(
-              width: size,
-              height: size,
-              'assets/pin_circle.svg',
-            ),
-          ],
+              SvgPicture.asset(
+                width: size,
+                height: size,
+                'assets/pin_circle.svg',
+              ),
+            ],
+          ),
         ),
       ),
     );

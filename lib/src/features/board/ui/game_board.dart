@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 
-import '../offsets/move_offsets.dart';
 import '../state/board_cubit.dart';
-import '../state/game_state.dart';
+
 import '../state/game_state_cubit.dart';
-import '../state/piece.dart';
 import 'base_grid.dart';
 import 'home_area.dart';
+
 import 'piece_widget.dart';
-import 'positioned_piece.dart';
+import 'pieces_grid.dart';
+
 import 'win_area.dart';
 
 class GameBoard extends StatelessWidget {
@@ -17,7 +18,6 @@ class GameBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameStateCubit>().state;
     return LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxHeight < constraints.maxWidth
           ? constraints.maxHeight
@@ -25,7 +25,7 @@ class GameBoard extends StatelessWidget {
       const int gridCount = 15;
       final double boxWidth = width / gridCount;
       context.read<BoxWidthCubit>().setBoxWidth(boxWidth);
-
+      final gameState = context.watch<GameStateCubit>().state;
       return AspectRatio(
         aspectRatio: 1,
         child: Stack(
@@ -57,37 +57,33 @@ class GameBoard extends StatelessWidget {
               bottom: 0,
             ),
             WinArea(boxWidth: boxWidth),
-            ..._getPositionedPieces(gameState, boxWidth),
+            Stack(children: [
+              PiecesGrid(
+                boxWidth: boxWidth,
+              ),
+            ]),
+            ...gameState.players.expand<Widget>((player) {
+              return List.generate(4, (i) {
+                final pieces = player.pieces;
+                final offset = MoveOffsets.getHomeOffset(pieces[i], boxWidth);
+
+                if (pieces[i].position != -1) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned(
+                  left: offset.dx,
+                  top: offset.dy,
+                  child: SizedBox(
+                    height: boxWidth,
+                    width: boxWidth,
+                    child: PieceWidget(piece: pieces[i]),
+                  ),
+                );
+              });
+            }),
           ],
         ),
       );
     });
-  }
-
-  List<Widget> _getPositionedPieces(GameState gameState, double boxWidth) {
-    final List<Piece> piecesList = [];
-
-    for (final player in gameState.players) {
-      for (final piece in player.pieces) {
-        piecesList.add(piece);
-      }
-    }
-    return piecesList.map((piece) {
-      final position = _getPositionOnBoard(piece, boxWidth);
-      return PositionedPiece(
-          position: position,
-          piece: PieceWidget(
-            piece: piece,
-          ));
-    }).toList();
-  }
-}
-
-Offset _getPositionOnBoard(Piece piece, double boxWidth) {
-  if (piece.position == -1) {
-    return MoveOffsets.getHomeOffset(piece, boxWidth);
-  } else {
-    final gridOffset = MoveOffsets.getBoardOffset(piece, boxWidth);
-    return Offset(gridOffset.dx, gridOffset.dy - (boxWidth / 2));
   }
 }

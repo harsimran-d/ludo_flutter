@@ -63,7 +63,6 @@ Widget? _getChild(int index, double boxWidth) {
       color: const Color(0xFFD93830),
     );
   } else {
-    // TODO: Add loading to show selectors
     return null;
   }
 }

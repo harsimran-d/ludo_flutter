@@ -4,19 +4,38 @@ import '../state/owner_color.dart';
 import '../state/piece.dart';
 
 class MoveOffsets {
+  static (int x, int y) getLocation(Piece piece) {
+    switch (piece.owner) {
+      case OwnerColor.red:
+        return redBoxCoords[piece.position];
+
+      case OwnerColor.green:
+        return greenBoxCoords[piece.position];
+
+      case OwnerColor.blue:
+        return blueBoxCoords[piece.position];
+
+      case OwnerColor.yellow:
+        return yellowBoxCoords[piece.position];
+
+      default:
+        throw Exception('could no');
+    }
+  }
+
   static Offset getBoardOffset(Piece piece, double boxWidth) {
     switch (piece.owner) {
       case OwnerColor.red:
-        final (x, y) = _getRedBox[piece.position];
+        final (x, y) = redBoxCoords[piece.position];
         return Offset(x * boxWidth, y * boxWidth);
       case OwnerColor.green:
-        final (x, y) = _getGreenBox[piece.position];
+        final (x, y) = greenBoxCoords[piece.position];
         return Offset(x * boxWidth, y * boxWidth);
       case OwnerColor.blue:
-        final (x, y) = _getBlueBox[piece.position];
+        final (x, y) = blueBoxCoords[piece.position];
         return Offset(x * boxWidth, y * boxWidth);
       case OwnerColor.yellow:
-        final (x, y) = _getYellowBox[piece.position];
+        final (x, y) = yellowBoxCoords[piece.position];
         return Offset(x * boxWidth, y * boxWidth);
       default:
         throw Exception('could no');
@@ -28,13 +47,13 @@ class MoveOffsets {
       case OwnerColor.red:
         switch (piece.id) {
           case 1:
-            return Offset(boxWidth * 1.5, boxWidth);
+            return Offset(boxWidth * 1.5, boxWidth * 1.5);
           case 2:
-            return Offset(boxWidth * 3.5, boxWidth);
+            return Offset(boxWidth * 3.5, boxWidth * 1.5);
           case 3:
-            return Offset(boxWidth * 1.5, 3 * boxWidth);
+            return Offset(boxWidth * 1.5, 3.5 * boxWidth);
           case 4:
-            return Offset(boxWidth * 3.5, 3 * boxWidth);
+            return Offset(boxWidth * 3.5, 3.5 * boxWidth);
           default:
             throw Exception('something went wrong getting position for red');
         }
@@ -42,13 +61,13 @@ class MoveOffsets {
       case OwnerColor.green:
         switch (piece.id) {
           case 1:
-            return Offset(boxWidth * 10.5, boxWidth);
+            return Offset(boxWidth * 10.5, boxWidth * 1.5);
           case 2:
-            return Offset(boxWidth * 12.5, boxWidth);
+            return Offset(boxWidth * 12.5, boxWidth * 1.5);
           case 3:
-            return Offset(boxWidth * 10.5, 3 * boxWidth);
+            return Offset(boxWidth * 10.5, 3.5 * boxWidth);
           case 4:
-            return Offset(boxWidth * 12.5, 3 * boxWidth);
+            return Offset(boxWidth * 12.5, 3.5 * boxWidth);
           default:
             throw Exception('something went wrong getting position for red');
         }
@@ -56,26 +75,26 @@ class MoveOffsets {
       case OwnerColor.blue:
         switch (piece.id) {
           case 1:
-            return Offset(boxWidth * 1.5, boxWidth * 10);
+            return Offset(boxWidth * 1.5, boxWidth * 10.5);
           case 2:
-            return Offset(boxWidth * 3.5, boxWidth * 10);
+            return Offset(boxWidth * 3.5, boxWidth * 10.5);
           case 3:
-            return Offset(boxWidth * 1.5, boxWidth * 12);
+            return Offset(boxWidth * 1.5, boxWidth * 12.5);
           case 4:
-            return Offset(boxWidth * 3.5, boxWidth * 12);
+            return Offset(boxWidth * 3.5, boxWidth * 12.5);
           default:
             throw Exception('something went wrong getting position for red');
         }
       case OwnerColor.yellow:
         switch (piece.id) {
           case 1:
-            return Offset(boxWidth * 10.5, boxWidth * 10);
+            return Offset(boxWidth * 10.5, boxWidth * 10.5);
           case 2:
-            return Offset(boxWidth * 12.5, boxWidth * 10);
+            return Offset(boxWidth * 12.5, boxWidth * 10.5);
           case 3:
-            return Offset(boxWidth * 10.5, boxWidth * 12);
+            return Offset(boxWidth * 10.5, boxWidth * 12.5);
           case 4:
-            return Offset(boxWidth * 12.5, boxWidth * 12);
+            return Offset(boxWidth * 12.5, boxWidth * 12.5);
           default:
             throw Exception('something went wrong getting position for red');
         }
@@ -86,7 +105,7 @@ class MoveOffsets {
   }
 }
 
-const List<(int x, int y)> _getRedBox = [
+const List<(int x, int y)> redBoxCoords = [
   (1, 6),
   (2, 6),
   (3, 6),
@@ -145,7 +164,7 @@ const List<(int x, int y)> _getRedBox = [
   (5, 7),
   (6, 7),
 ];
-const List<(int x, int y)> _getGreenBox = [
+const List<(int x, int y)> greenBoxCoords = [
   (8, 1),
   (8, 2),
   (8, 3),
@@ -204,7 +223,7 @@ const List<(int x, int y)> _getGreenBox = [
   (7, 5),
   (7, 6)
 ];
-const List<(int x, int y)> _getBlueBox = [
+const List<(int x, int y)> blueBoxCoords = [
   (6, 13),
   (6, 12),
   (6, 11),
@@ -263,7 +282,7 @@ const List<(int x, int y)> _getBlueBox = [
   (7, 9),
   (7, 8),
 ];
-const List<(int x, int y)> _getYellowBox = [
+const List<(int x, int y)> yellowBoxCoords = [
   (13, 8),
   (12, 8),
   (11, 8),

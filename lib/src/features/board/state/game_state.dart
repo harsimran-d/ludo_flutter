@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
+import 'package:ludo_flutter/src/features/board/state/piece.dart';
 
 import 'player.dart';
 
@@ -9,10 +10,13 @@ class GameState {
     int dice, {
     required this.players,
     required this.turn,
+    required this.piecesGrid,
   }) : _dice = dice;
   final List<Player> players;
   final OwnerColor turn;
   int _dice;
+
+  final List<List<List<Piece>>> piecesGrid;
 
   bool get isSelectingPieces {
     bool selectablePieces = false;
@@ -28,11 +32,13 @@ class GameState {
     int? dice,
     List<Player>? players,
     OwnerColor? turn,
+    List<List<List<Piece>>>? piecesGrid,
   }) {
     return GameState(
       dice ?? this.dice,
       players: players ?? this.players,
       turn: turn ?? this.turn,
+      piecesGrid: piecesGrid ?? this.piecesGrid,
     );
   }
 
