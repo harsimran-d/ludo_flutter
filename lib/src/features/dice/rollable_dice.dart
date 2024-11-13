@@ -35,7 +35,7 @@ class RollableDiceState extends State<RollableDice>
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        context.read<BoardBloc>().rollDice(widget.playerColor);
+        context.read<BoardBloc>().add(RolledDice(widget.playerColor));
         _controller.reset();
       }
     });
@@ -56,13 +56,6 @@ class RollableDiceState extends State<RollableDice>
   void rollDice() {
     _debouncer?.cancel();
     _debouncer = Timer(const Duration(milliseconds: 100), () {
-      print('so many ');
-      final gameState = context.read<BoardBloc>().state;
-      print('is animating pieces ${gameState.isAnimatingPieces}');
-      if (gameState.isSelectingPieces || gameState.isAnimatingPieces) {
-        return;
-      }
-
       _controller.forward();
     });
   }

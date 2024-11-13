@@ -24,7 +24,7 @@ class PieceWidget extends StatelessWidget {
         child: GestureDetector(
           onTap: piece.isSelectable
               ? () {
-                  context.read<BoardBloc>().selectPieceToMove(piece);
+                  context.read<BoardBloc>().add(SelectedPiece(piece));
                 }
               : null,
           child: Stack(

@@ -26,17 +26,16 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
               ),
             ],
             turn: Random().nextBool() ? OwnerColor.blue : OwnerColor.green,
-            piecesGrid: List.generate(
-              15,
-              (_) => List.generate(15, (_) => []),
-            ),
-            isAnimatingPieces: false,
-            hasTakenOneTurn: false,
+            piecesGrid: List.generate(15, (_) => List.generate(15, (_) => [])),
           ),
-        );
+        ) {
+    on<RolledDice>(_diceRolled);
+    on<SelectedPiece>(_selectPieceToMove);
+  }
 
-  Future<void> selectPieceToMove(Piece piece) async {
-    print('piece was selected');
+  Future<void> _selectPieceToMove(
+      SelectedPiece event, Emitter<BoardState> emit) async {
+    final piece = event.piece;
     if (piece.position == -1) {
       piece.position = 0;
       piece.location = MoveOffsets.getLocation(piece);
@@ -58,32 +57,19 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
     }
     if (state.dice == 6) {
       Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWith(hasTakenOneTurn: false)));
+          .then((_) => emit(state.copyWith()));
       return;
     }
-    flipTurn(piece.owner);
+    flipTurn(piece.owner, emit);
   }
 
-  void rollDice(OwnerColor color) {
-    if (state.hasTakenOneTurn) {
-      print('you have already taken turn');
+  void _diceRolled(RolledDice event, Emitter<BoardState> emit) async {
+    if (state is AnimatingPieces) {
       return;
     }
-    state.hasTakenOneTurn = true;
-    if (color != state.turn) {
-      return;
-    }
-    if (state.isSelectingPieces) {
-      return;
-    }
-    if (state.isAnimatingPieces) {
-      return;
-    }
-
-    state.rollDice();
-    final dice = state.dice;
+    final dice = state.rollDice();
     List<Piece> selectablePieces = state.players
-        .singleWhere((player) => player.myColor == color)
+        .singleWhere((player) => player.myColor == event.colorBy)
         .pieces
         .where((piece) {
           if ((dice == 6) && (piece.position + dice) <= 56) {
@@ -101,32 +87,28 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
         .toList();
 
     if (selectablePieces.isEmpty && !state.isSelectingPieces) {
-      flipTurn(color);
+      flipTurn(event.colorBy, emit);
       return;
     } else if (selectablePieces.length == 1) {
-      selectPieceToMove(selectablePieces[0]);
+      _selectPieceToMove(SelectedPiece(selectablePieces[0]), emit);
     } else {
-      Future.delayed(const Duration(milliseconds: 500))
+      await Future.delayed(const Duration(milliseconds: 500))
           .then((_) => emit(state.copyWith(dice: dice)));
       return;
     }
   }
 
-  void flipTurn(OwnerColor color) {
-    if (state.isAnimatingPieces || state.isSelectingPieces) {
-      return;
-    }
+  void flipTurn(OwnerColor color, Emitter<BoardState> emit) {
     final newTurn =
         color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
     final newState = state.copyWith(
       dice: state.dice,
       players: state.players,
       turn: newTurn,
-      hasTakenOneTurn: false,
+      piecesGrid: state.piecesGrid,
     );
     Future.delayed(const Duration(milliseconds: 500))
         .then((_) => emit(newState));
-    return;
   }
 
   Future<void> movePieceStepByStep(Piece piece, int steps) async {
@@ -141,7 +123,7 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
         if (state.piecesGrid[piece.location.$1][piece.location.$2].isEmpty ||
             _isSafeSquare(piece.location)) {
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith(isAnimatingPieces: false));
+          return emit(state.copyWith());
         } else {
           state.piecesGrid[piece.location.$1][piece.location.$2]
               .removeWhere((p) {
@@ -152,12 +134,12 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
             return false;
           });
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith(isAnimatingPieces: false));
+          return emit(state.copyWith());
         }
       }
       state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
 
-      emit(state.copyWith(isAnimatingPieces: true));
+      emit(state.copyWith());
     }
   }
 
