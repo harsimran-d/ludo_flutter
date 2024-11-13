@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
 import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
 import 'package:ludo_flutter/src/features/dice/rollable_dice.dart';
+import 'state/board_cubit.dart';
 import 'ui/game_board.dart';
 
 class BoardScreen extends StatelessWidget {
@@ -13,6 +14,7 @@ class BoardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final boxWidth = context.watch<BoxWidthCubit>().state;
     final state = context.watch<GameStateCubit>().state;
     return Scaffold(
         appBar: AppBar(
@@ -33,27 +35,35 @@ class BoardScreen extends StatelessWidget {
                     ? const RollableDice(
                         playerColor: OwnerColor.green,
                       )
-                    : const SizedBox(
-                        height: 104,
+                    : SizedBox(
+                        height: (2 * boxWidth),
                       ),
-                const SizedBox(
-                  height: 30,
-                ),
-                const Expanded(
+                Flexible(
                   child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: GameBoard(),
+                    padding: const EdgeInsets.all(8.0),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        final width =
+                            constraints.maxHeight < constraints.maxWidth
+                                ? constraints.maxHeight
+                                : constraints.maxWidth;
+                        const int gridCount = 15;
+                        final double boxWidth = (width / gridCount);
+                        context.read<BoxWidthCubit>().setBoxWidth(boxWidth);
+                        return GameBoard(
+                          boxWidth: boxWidth,
+                        );
+                      }),
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
                 ),
                 state.turn == OwnerColor.blue
                     ? const RollableDice(
                         playerColor: OwnerColor.blue,
                       )
-                    : const SizedBox(
-                        height: 104,
+                    : SizedBox(
+                        height: (2 * boxWidth),
                       ),
               ],
             ),

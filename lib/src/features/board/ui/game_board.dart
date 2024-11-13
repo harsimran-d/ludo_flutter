@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 
-import '../state/board_cubit.dart';
-
 import '../state/game_state_cubit.dart';
 import 'base_grid.dart';
 import 'home_area.dart';
@@ -14,20 +12,19 @@ import 'pieces_grid.dart';
 import 'win_area.dart';
 
 class GameBoard extends StatelessWidget {
-  const GameBoard({super.key});
-
+  const GameBoard({
+    required this.boxWidth,
+    super.key,
+  });
+  final double boxWidth;
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxHeight < constraints.maxWidth
-          ? constraints.maxHeight
-          : constraints.maxWidth;
-      const int gridCount = 15;
-      final double boxWidth = width / gridCount;
-      context.read<BoxWidthCubit>().setBoxWidth(boxWidth);
-      final gameState = context.watch<GameStateCubit>().state;
-      return AspectRatio(
-        aspectRatio: 1,
+    final gameState = context.watch<GameStateCubit>().state;
+    return AspectRatio(
+      aspectRatio: 1,
+      child: SizedBox(
+        height: 15 * boxWidth,
+        width: 15 * boxWidth,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -81,7 +78,7 @@ class GameBoard extends StatelessWidget {
             }),
           ],
         ),
-      );
-    });
+      ),
+    );
   }
 }

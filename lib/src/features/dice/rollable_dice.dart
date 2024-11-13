@@ -2,9 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ludo_flutter/src/features/board/state/game_state.dart';
 
 import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
 import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
+
+import '../board/state/board_cubit.dart';
 
 class RollableDice extends StatefulWidget {
   const RollableDice({
@@ -21,7 +24,7 @@ class RollableDiceState extends State<RollableDice>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-
+  bool _clickedForTurn = false;
   @override
   void initState() {
     super.initState();
@@ -50,6 +53,10 @@ class RollableDiceState extends State<RollableDice>
   }
 
   void rollDice() {
+    if (_clickedForTurn) {
+      return;
+    }
+    _clickedForTurn = true;
     final gameState = context.read<GameStateCubit>().state;
     if (gameState.isSelectingPieces) {
       return;
@@ -60,41 +67,51 @@ class RollableDiceState extends State<RollableDice>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: rollDice,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (BuildContext context, Widget? child) {
-          final diceFace = context.read<GameStateCubit>().state.dice;
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.002)
-              ..rotateY(_animation.value),
-            child: Container(
-              decoration: BoxDecoration(
-                color: widget.playerColor.myColor.withAlpha(100),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.black,
-                  width: 2,
-                ),
-              ),
+    final boxWidth = context.watch<BoxWidthCubit>().state;
+    return BlocListener<GameStateCubit, GameState>(
+      listener: (context, state) {
+        if ((state.turn == widget.playerColor) &&
+            (!state.isSelectingPieces) &&
+            (!state.piecesAreMoving)) {
+          _clickedForTurn = false;
+        }
+      },
+      child: GestureDetector(
+        onTap: rollDice,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (BuildContext context, Widget? child) {
+            final diceFace = context.read<GameStateCubit>().state.dice;
+            return Center(
               child: SizedBox(
-                height: 100,
-                width: 100,
-                child: Center(
-                  child: Text(
-                    diceFace.toString(),
-                    style: const TextStyle(
-                      fontSize: 48,
+                height: 2 * boxWidth,
+                width: 2 * boxWidth,
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.002)
+                    ..rotateY(_animation.value),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: widget.playerColor.myColor.withAlpha(100),
+                      borderRadius: BorderRadius.circular(boxWidth * 0.3),
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        diceFace.toString(),
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

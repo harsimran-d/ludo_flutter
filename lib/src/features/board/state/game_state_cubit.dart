@@ -23,6 +23,7 @@ class GameStateCubit extends Cubit<GameState> {
             ],
             turn: Random().nextBool() ? OwnerColor.blue : OwnerColor.green,
             piecesGrid: List.generate(15, (_) => List.generate(15, (_) => [])),
+            piecesAreMoving: false,
           ),
         );
 
@@ -112,6 +113,7 @@ class GameStateCubit extends Cubit<GameState> {
   }
 
   Future<void> movePieceStepByStep(Piece piece, int steps) async {
+    state.piecesAreMoving = true;
     for (int i = 0; i < steps; i++) {
       final isLastStep = i == steps - 1;
 
@@ -142,6 +144,7 @@ class GameStateCubit extends Cubit<GameState> {
 
       emit(state.copyWith());
     }
+    emit(state.copyWith(piecesAreMoving: false));
   }
 
   bool _isSafeSquare((int, int) location) {

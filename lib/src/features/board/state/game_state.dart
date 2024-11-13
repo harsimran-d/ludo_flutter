@@ -11,13 +11,14 @@ class GameState {
     required this.players,
     required this.turn,
     required this.piecesGrid,
+    required this.piecesAreMoving,
   }) : _dice = dice;
   final List<Player> players;
   final OwnerColor turn;
   int _dice;
 
   final List<List<List<Piece>>> piecesGrid;
-
+  bool piecesAreMoving = false;
   bool get isSelectingPieces {
     bool selectablePieces = false;
     for (Player player in players) {
@@ -33,12 +34,14 @@ class GameState {
     List<Player>? players,
     OwnerColor? turn,
     List<List<List<Piece>>>? piecesGrid,
+    bool? piecesAreMoving,
   }) {
     return GameState(
       dice ?? this.dice,
       players: players ?? this.players,
       turn: turn ?? this.turn,
       piecesGrid: piecesGrid ?? this.piecesGrid,
+      piecesAreMoving: piecesAreMoving ?? this.piecesAreMoving,
     );
   }
 

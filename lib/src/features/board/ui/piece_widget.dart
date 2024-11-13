@@ -16,11 +16,11 @@ class PieceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = context.read<BoxWidthCubit>().state * updatedSize;
+    final size = context.watch<BoxWidthCubit>().state * updatedSize;
     return Transform.scale(
       scale: 1.3,
       child: Transform.translate(
-        offset: const Offset(0, -25),
+        offset: Offset(0, -(size / 2)),
         child: GestureDetector(
           onTap: piece.isSelectable
               ? () {
@@ -32,9 +32,12 @@ class PieceWidget extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             children: [
               if (piece.isSelectable)
-                const Positioned(
+                Positioned(
                   bottom: -10,
-                  child: CircularProgressIndicator(),
+                  child: SizedBox(
+                      width: size * .7,
+                      height: size * .7,
+                      child: const CircularProgressIndicator()),
                 ),
               SvgPicture.asset(
                 width: size,
