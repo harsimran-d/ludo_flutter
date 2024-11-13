@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ludo_flutter/src/features/board/state/game_state.dart';
+import 'package:ludo_flutter/src/features/board/bloc/game_state.dart';
 
-import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
-import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
+import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/owner_color.dart';
 
-import '../board/state/board_cubit.dart';
+import '../board/bloc/board_cubit.dart';
 
 class RollableDice extends StatefulWidget {
   const RollableDice({

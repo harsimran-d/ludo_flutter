@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
-import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
+import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/owner_color.dart';
 import 'package:ludo_flutter/src/features/dice/rollable_dice.dart';
-import 'state/board_cubit.dart';
-import 'ui/game_board.dart';
+import 'bloc/board_cubit.dart';
+import 'view/game_board.dart';
 
 class BoardScreen extends StatelessWidget {
   const BoardScreen({

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:ludo_flutter/src/features/board/state/board_cubit.dart';
-import 'package:ludo_flutter/src/features/board/state/game_state_cubit.dart';
-import 'package:ludo_flutter/src/features/board/state/piece.dart';
+import 'package:ludo_flutter/src/features/board/bloc/board_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
 class PieceWidget extends StatelessWidget {
   const PieceWidget({

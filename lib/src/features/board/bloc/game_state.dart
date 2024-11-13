@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:ludo_flutter/src/features/board/state/owner_color.dart';
-import 'package:ludo_flutter/src/features/board/state/piece.dart';
+import 'package:ludo_flutter/src/features/board/bloc/owner_color.dart';
+import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
 import 'player.dart';
 

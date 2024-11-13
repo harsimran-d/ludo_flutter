@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../state/game_state.dart';
-import '../state/game_state_cubit.dart';
-import '../state/piece.dart';
+import '../bloc/game_state.dart';
+import '../bloc/game_state_cubit.dart';
+import '../bloc/piece.dart';
 import 'piece_widget.dart';
 
 class PiecesGrid extends StatelessWidget {

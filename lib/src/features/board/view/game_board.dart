@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 
-import '../state/game_state_cubit.dart';
+import '../bloc/game_state_cubit.dart';
 import 'base_grid.dart';
 import 'home_area.dart';
 

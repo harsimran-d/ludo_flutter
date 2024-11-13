@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
-import 'package:ludo_flutter/src/features/board/state/piece.dart';
+import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
 import 'game_state.dart';
 import 'owner_color.dart';

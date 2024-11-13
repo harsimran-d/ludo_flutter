@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import '../state/owner_color.dart';
-import '../state/piece.dart';
+import '../bloc/owner_color.dart';
+import '../bloc/piece.dart';
 
 class MoveOffsets {
   static (int x, int y) getLocation(Piece piece) {
