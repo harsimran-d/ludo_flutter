@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/board_cubit.dart';
-import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/board_bloc.dart';
 import 'package:ludo_flutter/src/features/home/home_screen.dart';
 
 void main() {
@@ -16,7 +16,7 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => BoxWidthCubit()),
-        BlocProvider(create: (context) => GameStateCubit()),
+        BlocProvider(create: (context) => BoardBloc()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

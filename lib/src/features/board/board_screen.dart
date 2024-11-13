@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/board_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/owner_color.dart';
 import 'package:ludo_flutter/src/features/dice/rollable_dice.dart';
 import 'bloc/board_cubit.dart';
@@ -15,7 +15,7 @@ class BoardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final boxWidth = context.watch<BoxWidthCubit>().state;
-    final state = context.watch<GameStateCubit>().state;
+    final state = context.watch<BoardBloc>().state;
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(

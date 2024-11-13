@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 
-import '../bloc/game_state_cubit.dart';
+import '../bloc/board_bloc.dart';
 import 'base_grid.dart';
 import 'home_area.dart';
 
@@ -19,7 +19,7 @@ class GameBoard extends StatelessWidget {
   final double boxWidth;
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameStateCubit>().state;
+    final gameState = context.watch<BoardBloc>().state;
     return AspectRatio(
       aspectRatio: 1,
       child: SizedBox(

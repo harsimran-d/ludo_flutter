@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ludo_flutter/src/features/board/bloc/board_cubit.dart';
-import 'package:ludo_flutter/src/features/board/bloc/game_state_cubit.dart';
+import 'package:ludo_flutter/src/features/board/bloc/board_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
 class PieceWidget extends StatelessWidget {
@@ -24,7 +24,7 @@ class PieceWidget extends StatelessWidget {
         child: GestureDetector(
           onTap: piece.isSelectable
               ? () {
-                  context.read<GameStateCubit>().selectPieceToMove(piece);
+                  context.read<BoardBloc>().selectPieceToMove(piece);
                 }
               : null,
           child: Stack(

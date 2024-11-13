@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/game_state.dart';
-import '../bloc/game_state_cubit.dart';
+import '../bloc/board_bloc.dart';
 import '../bloc/piece.dart';
 import 'piece_widget.dart';
 
@@ -16,7 +15,7 @@ class PiecesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<GameStateCubit>().state;
+    final gameState = context.watch<BoardBloc>().state;
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -33,7 +32,7 @@ class PiecesGrid extends StatelessWidget {
     );
   }
 
-  Widget? _getChild(int index, GameState gameState) {
+  Widget? _getChild(int index, BoardState gameState) {
     final pieces = gameState.piecesGrid[index % 15][index ~/ 15];
     if (pieces.isEmpty) return null;
     if (pieces.length == 1) {

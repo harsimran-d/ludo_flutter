@@ -1,18 +1,22 @@
 import 'dart:math';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:ludo_flutter/src/features/board/offsets/move_offsets.dart';
 import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
-import 'game_state.dart';
 import 'owner_color.dart';
 import 'player.dart';
 
-class GameStateCubit extends Cubit<GameState> {
-  GameStateCubit()
+part 'board_state.dart';
+part 'board_event.dart';
+
+class BoardBloc extends Bloc<BoardEvent, BoardState> {
+  BoardBloc()
       : super(
-          GameState(
-            1,
+          BoardState(
+            dice: 1,
             players: [
               Player(
                 myColor: OwnerColor.green,
@@ -22,12 +26,17 @@ class GameStateCubit extends Cubit<GameState> {
               ),
             ],
             turn: Random().nextBool() ? OwnerColor.blue : OwnerColor.green,
-            piecesGrid: List.generate(15, (_) => List.generate(15, (_) => [])),
-            piecesAreMoving: false,
+            piecesGrid: List.generate(
+              15,
+              (_) => List.generate(15, (_) => []),
+            ),
+            isAnimatingPieces: false,
+            hasTakenOneTurn: false,
           ),
         );
 
-  void selectPieceToMove(Piece piece) async {
+  Future<void> selectPieceToMove(Piece piece) async {
+    print('piece was selected');
     if (piece.position == -1) {
       piece.position = 0;
       piece.location = MoveOffsets.getLocation(piece);
@@ -43,30 +52,34 @@ class GameStateCubit extends Cubit<GameState> {
             .firstWhere((player) => player.myColor == piece.owner)
             .pieces
             .forEach((piece) => piece.isSelectable = false);
+
         await movePieceStepByStep(piece, state.dice);
       }
     }
     if (state.dice == 6) {
       Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWith()));
+          .then((_) => emit(state.copyWith(hasTakenOneTurn: false)));
       return;
     }
-    final newTurn =
-        piece.owner == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
-    final newState = state.copyWith(
-      dice: state.dice,
-      players: state.players,
-      turn: newTurn,
-    );
-    Future.delayed(const Duration(milliseconds: 500))
-        .then((_) => emit(newState));
-    return;
+    flipTurn(piece.owner);
   }
 
   void rollDice(OwnerColor color) {
+    if (state.hasTakenOneTurn) {
+      print('you have already taken turn');
+      return;
+    }
+    state.hasTakenOneTurn = true;
     if (color != state.turn) {
       return;
     }
+    if (state.isSelectingPieces) {
+      return;
+    }
+    if (state.isAnimatingPieces) {
+      return;
+    }
+
     state.rollDice();
     final dice = state.dice;
     List<Piece> selectablePieces = state.players
@@ -87,25 +100,29 @@ class GameStateCubit extends Cubit<GameState> {
         )
         .toList();
 
-    if (selectablePieces.isEmpty) {
+    if (selectablePieces.isEmpty && !state.isSelectingPieces) {
       flipTurn(color);
       return;
     } else if (selectablePieces.length == 1) {
       selectPieceToMove(selectablePieces[0]);
     } else {
       Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWith()));
+          .then((_) => emit(state.copyWith(dice: dice)));
       return;
     }
   }
 
   void flipTurn(OwnerColor color) {
+    if (state.isAnimatingPieces || state.isSelectingPieces) {
+      return;
+    }
     final newTurn =
         color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
     final newState = state.copyWith(
       dice: state.dice,
       players: state.players,
       turn: newTurn,
+      hasTakenOneTurn: false,
     );
     Future.delayed(const Duration(milliseconds: 500))
         .then((_) => emit(newState));
@@ -113,10 +130,8 @@ class GameStateCubit extends Cubit<GameState> {
   }
 
   Future<void> movePieceStepByStep(Piece piece, int steps) async {
-    state.piecesAreMoving = true;
     for (int i = 0; i < steps; i++) {
       final isLastStep = i == steps - 1;
-
       await Future.delayed(const Duration(milliseconds: 250));
       var oldLocation = piece.location;
       state.piecesGrid[oldLocation.$1][oldLocation.$2].remove(piece);
@@ -126,7 +141,7 @@ class GameStateCubit extends Cubit<GameState> {
         if (state.piecesGrid[piece.location.$1][piece.location.$2].isEmpty ||
             _isSafeSquare(piece.location)) {
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith());
+          return emit(state.copyWith(isAnimatingPieces: false));
         } else {
           state.piecesGrid[piece.location.$1][piece.location.$2]
               .removeWhere((p) {
@@ -137,14 +152,13 @@ class GameStateCubit extends Cubit<GameState> {
             return false;
           });
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith());
+          return emit(state.copyWith(isAnimatingPieces: false));
         }
       }
       state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
 
-      emit(state.copyWith());
+      emit(state.copyWith(isAnimatingPieces: true));
     }
-    emit(state.copyWith(piecesAreMoving: false));
   }
 
   bool _isSafeSquare((int, int) location) {
