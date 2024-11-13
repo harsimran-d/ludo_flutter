@@ -113,14 +113,51 @@ class GameStateCubit extends Cubit<GameState> {
 
   Future<void> movePieceStepByStep(Piece piece, int steps) async {
     for (int i = 0; i < steps; i++) {
+      final isLastStep = i == steps - 1;
+
       await Future.delayed(const Duration(milliseconds: 250));
       var oldLocation = piece.location;
       state.piecesGrid[oldLocation.$1][oldLocation.$2].remove(piece);
       piece.position++;
       piece.location = MoveOffsets.getLocation(piece);
+      if (isLastStep) {
+        if (state.piecesGrid[piece.location.$1][piece.location.$2].isEmpty ||
+            _isSafeSquare(piece.location)) {
+          state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
+          return emit(state.copyWith());
+        } else {
+          state.piecesGrid[piece.location.$1][piece.location.$2]
+              .removeWhere((p) {
+            if (p.owner != piece.owner) {
+              p.position = -1;
+              return true;
+            }
+            return false;
+          });
+          state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
+          return emit(state.copyWith());
+        }
+      }
       state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
 
       emit(state.copyWith());
     }
+  }
+
+  bool _isSafeSquare((int, int) location) {
+    const List<(int, int)> starSquares = [
+      (2, 8),
+      (6, 2),
+      (8, 12),
+      (12, 6),
+    ];
+    const List<(int, int)> colorStartSquares = [
+      (1, 6),
+      (6, 13),
+      (8, 1),
+      (13, 8)
+    ];
+    const List<(int, int)> safeSpaces = [...starSquares, ...colorStartSquares];
+    return safeSpaces.contains(location);
   }
 }

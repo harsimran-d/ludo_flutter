@@ -57,11 +57,9 @@ class GameBoard extends StatelessWidget {
               bottom: 0,
             ),
             WinArea(boxWidth: boxWidth),
-            Stack(children: [
-              PiecesGrid(
-                boxWidth: boxWidth,
-              ),
-            ]),
+            PiecesGrid(
+              boxWidth: boxWidth,
+            ),
             ...gameState.players.expand<Widget>((player) {
               return List.generate(4, (i) {
                 final pieces = player.pieces;
