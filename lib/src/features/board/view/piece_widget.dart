@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:ludo_flutter/src/features/board/bloc/board_cubit.dart';
+
 import 'package:ludo_flutter/src/features/board/bloc/board_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/piece.dart';
 
@@ -9,18 +9,20 @@ class PieceWidget extends StatelessWidget {
   const PieceWidget({
     super.key,
     required this.piece,
+    required this.boxWidth,
     this.updatedSize = 1.0,
   });
   final Piece piece;
   final double updatedSize;
+  final double boxWidth;
 
   @override
   Widget build(BuildContext context) {
-    final size = context.watch<BoxWidthCubit>().state * updatedSize;
+    final size = boxWidth * updatedSize;
     return Transform.scale(
-      scale: 1.3,
+      scale: 1.1,
       child: Transform.translate(
-        offset: Offset(0, -(size / 2)),
+        offset: Offset(0, -(size / 4)),
         child: GestureDetector(
           onTap: piece.isSelectable
               ? () {

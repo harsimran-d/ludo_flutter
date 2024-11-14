@@ -16,6 +16,7 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
   BoardBloc()
       : super(
           BoardState(
+            status: BoardStatus.readyForRoll,
             dice: 1,
             players: [
               Player(
@@ -31,6 +32,26 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
         ) {
     on<RolledDice>(_diceRolled);
     on<SelectedPiece>(_selectPieceToMove);
+    on<RestartGame>(_restartGame);
+  }
+
+  void _restartGame(RestartGame event, Emitter<BoardState> emit) {
+    emit(
+      BoardState(
+        status: BoardStatus.readyForRoll,
+        dice: 1,
+        players: [
+          Player(
+            myColor: OwnerColor.green,
+          ),
+          Player(
+            myColor: OwnerColor.blue,
+          ),
+        ],
+        turn: Random().nextBool() ? OwnerColor.blue : OwnerColor.green,
+        piecesGrid: List.generate(15, (_) => List.generate(15, (_) => [])),
+      ),
+    );
   }
 
   Future<void> _selectPieceToMove(
@@ -51,23 +72,30 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
             .firstWhere((player) => player.myColor == piece.owner)
             .pieces
             .forEach((piece) => piece.isSelectable = false);
-
-        await movePieceStepByStep(piece, state.dice);
+        emit(state.copyWith(status: BoardStatus.animatingPiecesOn));
+        return movePieceStepByStep(piece, state.dice, emit);
       }
     }
     if (state.dice == 6) {
-      Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWith()));
+      emit(state.copyWith(status: BoardStatus.readyForRoll));
       return;
     }
     flipTurn(piece.owner, emit);
   }
 
   void _diceRolled(RolledDice event, Emitter<BoardState> emit) async {
-    if (state is AnimatingPieces) {
+    if ((state.status != BoardStatus.readyForRoll) &&
+        (state.turn == event.colorBy)) {
       return;
     }
+
     final dice = state.rollDice();
+
+    emit(state.copyWith(status: BoardStatus.animatingDice));
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    emit(state.copyWith(status: BoardStatus.selectingPieces, dice: dice));
+
     List<Piece> selectablePieces = state.players
         .singleWhere((player) => player.myColor == event.colorBy)
         .pieces
@@ -86,32 +114,63 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
         )
         .toList();
 
-    if (selectablePieces.isEmpty && !state.isSelectingPieces) {
-      flipTurn(event.colorBy, emit);
+    if (selectablePieces.isEmpty) {
+      await flipTurn(event.colorBy, emit);
       return;
     } else if (selectablePieces.length == 1) {
-      _selectPieceToMove(SelectedPiece(selectablePieces[0]), emit);
+      await _selectPieceToMove(SelectedPiece(selectablePieces[0]), emit);
     } else {
-      await Future.delayed(const Duration(milliseconds: 500))
-          .then((_) => emit(state.copyWith(dice: dice)));
+      await Future.delayed(const Duration(milliseconds: 500));
+      emit(state.copyWith(dice: dice));
       return;
     }
   }
 
-  void flipTurn(OwnerColor color, Emitter<BoardState> emit) {
+  Future<void> flipTurn(OwnerColor color, Emitter<BoardState> emit) async {
+    if (state.piecesGrid[7][6].length == 4) {
+      emit(state.copyWith(
+        status: BoardStatus.gameOver,
+        winner: OwnerColor.green,
+      ));
+      return;
+    }
+    if (state.piecesGrid[6][7].length == 4) {
+      emit(state.copyWith(
+        status: BoardStatus.gameOver,
+        winner: OwnerColor.red,
+      ));
+      return;
+    }
+    if (state.piecesGrid[8][7].length == 4) {
+      emit(state.copyWith(
+        status: BoardStatus.gameOver,
+        winner: OwnerColor.green,
+      ));
+      return;
+    }
+    if (state.piecesGrid[7][8].length == 4) {
+      emit(state.copyWith(
+        status: BoardStatus.gameOver,
+        winner: OwnerColor.blue,
+      ));
+      return;
+    }
+
     final newTurn =
         color == OwnerColor.blue ? OwnerColor.green : OwnerColor.blue;
     final newState = state.copyWith(
+      status: BoardStatus.readyForRoll,
       dice: state.dice,
       players: state.players,
       turn: newTurn,
       piecesGrid: state.piecesGrid,
     );
-    Future.delayed(const Duration(milliseconds: 500))
-        .then((_) => emit(newState));
+    await Future.delayed(const Duration(milliseconds: 500));
+    emit(newState);
   }
 
-  Future<void> movePieceStepByStep(Piece piece, int steps) async {
+  Future<void> movePieceStepByStep(
+      Piece piece, int steps, Emitter<BoardState> emit) async {
     for (int i = 0; i < steps; i++) {
       final isLastStep = i == steps - 1;
       await Future.delayed(const Duration(milliseconds: 250));
@@ -123,7 +182,16 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
         if (state.piecesGrid[piece.location.$1][piece.location.$2].isEmpty ||
             _isSafeSquare(piece.location)) {
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith());
+          emit(state.copyWith(
+              status: state.status == BoardStatus.animatingPiecesOff
+                  ? BoardStatus.animatingPiecesOn
+                  : BoardStatus.animatingPiecesOff,
+              piecesGrid: state.piecesGrid));
+          if (state.dice == 6) {
+            emit(state.copyWith(status: BoardStatus.readyForRoll));
+            return;
+          }
+          return flipTurn(piece.owner, emit);
         } else {
           state.piecesGrid[piece.location.$1][piece.location.$2]
               .removeWhere((p) {
@@ -134,12 +202,25 @@ class BoardBloc extends Bloc<BoardEvent, BoardState> {
             return false;
           });
           state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
-          return emit(state.copyWith());
+          emit(state.copyWith(
+              status: state.status == BoardStatus.animatingPiecesOff
+                  ? BoardStatus.animatingPiecesOn
+                  : BoardStatus.animatingPiecesOff,
+              piecesGrid: state.piecesGrid));
+          if (state.dice == 6) {
+            emit(state.copyWith(status: BoardStatus.readyForRoll));
+            return;
+          }
+          return flipTurn(piece.owner, emit);
         }
       }
       state.piecesGrid[piece.location.$1][piece.location.$2].add(piece);
 
-      emit(state.copyWith());
+      emit(state.copyWith(
+          status: state.status == BoardStatus.animatingPiecesOff
+              ? BoardStatus.animatingPiecesOn
+              : BoardStatus.animatingPiecesOff,
+          piecesGrid: state.piecesGrid));
     }
   }
 

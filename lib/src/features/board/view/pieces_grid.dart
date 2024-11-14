@@ -15,20 +15,59 @@ class PiecesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = context.watch<BoardBloc>().state;
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 15,
-      ),
-      itemBuilder: (context, index) {
-        return SizedBox(
-          width: boxWidth,
-          height: boxWidth,
-          child: Center(child: _getChild(index, gameState)),
+    return BlocConsumer<BoardBloc, BoardState>(
+      listenWhen: (previous, current) {
+        return current.status == BoardStatus.gameOver;
+      },
+      listener: (context, state) {
+        if (state.status == BoardStatus.gameOver) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  contentTextStyle:
+                      TextStyle(fontSize: 32, color: state.winner!.myColor),
+                  title: const Text(
+                    "Game Over",
+                    textAlign: TextAlign.center,
+                  ),
+                  content: Text('${state.winner!.title} won'),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          context.read<BoardBloc>().add(RestartGame());
+                          Navigator.of(context)
+                              .popUntil((route) => route.isFirst);
+                        },
+                        child: const Text(
+                          'Play Again',
+                          style: TextStyle(fontSize: 26),
+                        ))
+                  ],
+                );
+              });
+        }
+      },
+      buildWhen: (previous, current) {
+        return previous != current;
+      },
+      builder: (context, state) {
+        return GridView.builder(
+          clipBehavior: Clip.none,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 15,
+          ),
+          itemBuilder: (context, index) {
+            return SizedBox(
+              width: boxWidth,
+              height: boxWidth,
+              child: Center(child: _getChild(index, state)),
+            );
+          },
+          itemCount: 15 * 15,
         );
       },
-      itemCount: 15 * 15,
     );
   }
 
@@ -36,7 +75,10 @@ class PiecesGrid extends StatelessWidget {
     final pieces = gameState.piecesGrid[index % 15][index ~/ 15];
     if (pieces.isEmpty) return null;
     if (pieces.length == 1) {
-      return PieceWidget(piece: pieces[0]);
+      return PieceWidget(
+        piece: pieces[0],
+        boxWidth: boxWidth,
+      );
     } else {
       return Center(
           child: StackedRow(
@@ -77,6 +119,7 @@ class StackedRow extends StatelessWidget {
         child: PieceWidget(
           piece: piece,
           updatedSize: 0.7,
+          boxWidth: boxWidth,
         ),
       );
     });

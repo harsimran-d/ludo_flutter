@@ -7,15 +7,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/board_bloc.dart';
 import 'package:ludo_flutter/src/features/board/bloc/owner_color.dart';
 
-import '../board/bloc/board_cubit.dart';
-
 class RollableDice extends StatefulWidget {
   const RollableDice({
     super.key,
     required this.playerColor,
+    required this.boxWidth,
   });
   final OwnerColor playerColor;
-
+  final double boxWidth;
   @override
   State<StatefulWidget> createState() => RollableDiceState();
 }
@@ -35,7 +34,6 @@ class RollableDiceState extends State<RollableDice>
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        context.read<BoardBloc>().add(RolledDice(widget.playerColor));
         _controller.reset();
       }
     });
@@ -54,51 +52,64 @@ class RollableDiceState extends State<RollableDice>
   }
 
   void rollDice() {
-    _debouncer?.cancel();
-    _debouncer = Timer(const Duration(milliseconds: 100), () {
-      _controller.forward();
-    });
+    context.read<BoardBloc>().add(RolledDice(widget.playerColor));
   }
 
   @override
   Widget build(BuildContext context) {
-    final boxWidth = context.watch<BoxWidthCubit>().state;
-    return GestureDetector(
-      onTap: rollDice,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (BuildContext context, Widget? child) {
-          final diceFace = context.read<BoardBloc>().state.dice;
-          return Center(
-            child: SizedBox(
-              height: 2 * boxWidth,
-              width: 2 * boxWidth,
-              child: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.002)
-                  ..rotateY(_animation.value),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.playerColor.myColor.withAlpha(100),
-                    borderRadius: BorderRadius.circular(boxWidth * 0.3),
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      diceFace.toString(),
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                  ),
+    return BlocConsumer<BoardBloc, BoardState>(
+      listener: (context, state) {
+        if (state.status == BoardStatus.animatingDice) {
+          _controller.forward();
+        }
+      },
+      buildWhen: (previous, current) {
+        return (previous != current);
+      },
+      builder: (BuildContext context, BoardState state) {
+        return state.turn == widget.playerColor
+            ? GestureDetector(
+                key: Key(widget.playerColor.toString()),
+                onTap: state.turn == widget.playerColor ? rollDice : null,
+                child: AnimatedBuilder(
+                  animation: _animation,
+                  builder: (BuildContext context, Widget? child) {
+                    return Center(
+                      child: SizedBox(
+                        height: 2.5 * widget.boxWidth,
+                        width: 2.5 * widget.boxWidth,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.002)
+                            ..rotateY(_animation.value),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: widget.playerColor.myColor.withAlpha(100),
+                              borderRadius:
+                                  BorderRadius.circular(widget.boxWidth * 0.3),
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                state.dice.toString(),
+                                style: Theme.of(context).textTheme.displaySmall,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+              )
+            : SizedBox(
+                height: (2.5 * widget.boxWidth),
+              );
+      },
     );
   }
 }

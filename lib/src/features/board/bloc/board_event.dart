@@ -11,3 +11,5 @@ final class SelectedPiece extends BoardEvent {
   SelectedPiece(this.piece);
   final Piece piece;
 }
+
+final class RestartGame extends BoardEvent {}

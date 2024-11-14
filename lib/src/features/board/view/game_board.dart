@@ -71,7 +71,10 @@ class GameBoard extends StatelessWidget {
                   child: SizedBox(
                     height: boxWidth,
                     width: boxWidth,
-                    child: PieceWidget(piece: pieces[i]),
+                    child: PieceWidget(
+                      piece: pieces[i],
+                      boxWidth: boxWidth,
+                    ),
                   ),
                 );
               });
